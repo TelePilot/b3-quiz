@@ -1,4 +1,10 @@
 ---
+import {
+  SignedIn,
+  SignedOut,
+  UserButton,
+  SignInButton,
+} from '@clerk/astro/components'
 interface Props {
   title: string
 }
@@ -17,7 +23,38 @@ const { title } = Astro.props
     <title>{title}</title>
   </head>
   <body>
-    <slot />
+    <header class="min-h-24 flex gap-4 px-8 justify-between items-center">
+      <h1>{title}</h1>
+      <nav class="flex gap-8 items-center">
+        <ul class="flex gap-6">
+          <li><a href="/">Quiz</a></li>
+          <li><a href="/dashboard">Dashboard</a></li>
+        </ul>
+        <div
+          class="w-48 h-16 flex justify-between items-center gap-4 px-4 border border-solid border-black"
+        >
+          <SignedOut>
+            <p>Signed out</p>
+            <SignInButton mode="modal" />
+          </SignedOut>
+          <SignedIn>
+            <p>Signed in</p>
+            <UserButton />
+          </SignedIn>
+        </div>
+      </nav>
+    </header>
+    <article>
+      <div class="flex justify-center flex-col items-center">
+        <SignedOut>
+          <h2>Please Sign in to use the app</h2>
+          <SignInButton mode="modal" />
+        </SignedOut>
+      </div>
+      <SignedIn>
+        <slot />
+      </SignedIn>
+    </article>
   </body>
 </html>
 <style is:global>
@@ -32,6 +69,16 @@ const { title } = Astro.props
       rgb(var(--accent-light)) 30%,
       white 60%
     );
+  }
+  main {
+    padding: 12px 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column;
+  }
+  a {
+    text-decoration: underline;
   }
   *:focus {
     outline: 0.25em solid black;
