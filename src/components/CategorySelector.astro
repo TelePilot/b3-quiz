@@ -1,0 +1,10 @@
+---
+import { supabase } from '../actions/client'
+import QuizSelect from './QuizSelect'
+
+const { data } = await supabase.from('categories').select('*')
+
+const categories = data ?? []
+---
+
+<QuizSelect client:load categories={categories} />
