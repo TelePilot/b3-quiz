@@ -1,6 +1,6 @@
 import { actions } from 'astro:actions'
 import { Fragment, useMemo, useRef, useState } from 'react'
-import type { Question } from '../actions'
+import type { Category, Question } from '../actions'
 
 export type Answer = { answer: string; correct: boolean }
 
@@ -11,11 +11,7 @@ const shuffleAnswers = (answers: Answer[]) => {
   }
 }
 const ids = ['a', 'b', 'c', 'd']
-const QuizSelect = ({
-  categories,
-}: {
-  categories: { id: string; name: string }[]
-}) => {
+const QuizSelect = ({ categories }: { categories: Category[] }) => {
   const nextQuestionRef = useRef<HTMLButtonElement>(null)
   const [questions, setQuestions] = useState<Question[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)

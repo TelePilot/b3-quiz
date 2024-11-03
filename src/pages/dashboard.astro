@@ -1,0 +1,218 @@
+---
+import { actions } from 'astro:actions'
+import Layout from '../layouts/Layout.astro'
+import { createClerkSupaClient } from '../actions/client'
+const { data: categories } = await actions.getCategories()
+
+const errors = {
+  existingCategory: '',
+  newCategory: '',
+  question: '',
+  answers: '',
+  correctAnswer: '',
+}
+const prefilled = {
+  existingCategory: '',
+  newCategory: '',
+  question: '',
+  answers: [] as string[],
+  correctAnswer: '',
+}
+
+if (Astro.request.method === 'POST') {
+  const auth = Astro.locals.auth()
+
+  const token = await auth.getToken({
+    template: 'supabase',
+  })
+  const client = createClerkSupaClient(token!)
+
+  try {
+    const data = await Astro.request.formData()
+
+    data.set('sessionToken', token!)
+    const existingCategory = data.get('existing-category')
+    const newCategory = data.get('new-category')
+
+    if (!(existingCategory || newCategory)) {
+      errors.existingCategory = 'Enter at least one of existing or new category'
+      errors.newCategory = 'Enter at least one of existing or new category'
+    }
+
+    const question = data.get('question')
+    const answers = data.getAll('answers')
+    const correctAnswer = data.get('correct-answer')
+    const hasErrors = Object.values(errors).some((msg) => msg)
+    if (hasErrors) {
+      prefilled.existingCategory = existingCategory as string
+      prefilled.newCategory = newCategory as string
+      prefilled.question = question as string
+      prefilled.answers = answers as string[]
+      prefilled.correctAnswer = correctAnswer as string
+    } else {
+      let categoryId: number
+      if (newCategory) {
+        const { data } = await client
+          .from('categories')
+          .insert({
+            name: newCategory,
+          })
+          .select()
+        categoryId = data?.[0]?.id
+      }
+      //TODO: whatthefuq?
+      const category = categoryId! ? categoryId : +existingCategory!
+      const { error } = await client.from('questions').insert({
+        question,
+        answers,
+        correct_answer: correctAnswer,
+        category,
+      })
+    }
+  } catch (error) {}
+}
+---
+
+<Layout title="Dashboard">
+  <main>
+    <h2 class="text-3xl">Welcome to the dashboard</h2>
+    <div></div>
+    <div class="mt-8 border border-solid border-black px-10 py-6">
+      <h3 class="text-2xl">
+        Please fill out the form below to add a new question to your topic:
+      </h3>
+      <form method="POST" class="flex flex-col gap-4 px-2 py-4">
+        <div class="flex flex-col gap-2">
+          <label for="existing-category">Add to existing category</label>
+          <select name="existing-category" id="existing-category">
+            <option value="">--Leave blank if new category--</option>
+            {
+              categories?.map((cat) => (
+                <option
+                  selected={prefilled.existingCategory === cat.name}
+                  value={cat.id}
+                >
+                  {cat.name}
+                </option>
+              ))
+            }
+          </select>
+          {
+            errors.existingCategory && (
+              <p class="text-red-700">Error: {errors.existingCategory}</p>
+            )
+          }
+        </div>
+        <hr class="border-black" />
+        <div class="flex flex-col gap-2">
+          <label for="new-category">Add to new category</label>
+          <input
+            value={prefilled.newCategory}
+            class="mx-0"
+            name="new-category"
+            id="new-category"
+            placeholder="Awesome Cert"
+            type="text"
+          />
+          {
+            errors.newCategory && (
+              <p class="text-red-700">Error: {errors.newCategory}</p>
+            )
+          }
+        </div>
+        <hr class="border-black" />
+        <div class="flex flex-col gap-2">
+          <label for="question">Add your new question</label>
+          <textarea required name="question" id="question"
+            >{prefilled.question}</textarea
+          >
+        </div>
+        <hr class="border-black" />
+        <div>
+          <label for="answers">Add the answers to your question</label>
+          <fieldset>
+            <legend
+              >Add upp to 4 answers, a single answer will become a flashcard</legend
+            >
+            <div>
+              <label for="a">a</label><input
+                required
+                id="a"
+                name="answers"
+                type="text"
+                placeholder="Answer A"
+                value={prefilled.answers[0]}
+              />
+            </div>
+            <div>
+              <label for="b">b</label><input
+                id="b"
+                name="answers"
+                type="text"
+                placeholder="Answer B"
+                value={prefilled.answers[1]}
+              />
+            </div>
+            <div>
+              <label for="c">c</label><input
+                id="c"
+                name="answers"
+                type="text"
+                placeholder="Answer C"
+                value={prefilled.answers[2]}
+              />
+            </div>
+            <div>
+              <label for="d">d</label><input
+                id="d"
+                name="answers"
+                type="text"
+                placeholder="Answer d"
+                value={prefilled.answers[3]}
+              />
+            </div>
+          </fieldset>
+          <hr class="border-black my-4" />
+          <fieldset>
+            <legend>Select correct answer</legend>
+            <div>
+              <label for="a">a</label>
+              <input
+                id="a"
+                type="radio"
+                name="correct-answer"
+                value={0}
+                checked={prefilled.correctAnswer
+                  ? prefilled.correctAnswer === '0'
+                  : true}
+              />
+              <label for="b">b</label>
+              <input
+                type="radio"
+                name="correct-answer"
+                value={1}
+                checked={prefilled.correctAnswer === '1'}
+              />
+              <label for="c">c</label>
+              <input
+                id="c"
+                type="radio"
+                name="correct-answer"
+                value={2}
+                checked={prefilled.correctAnswer === '2'}
+              />
+              <label for="d">d</label>
+              <input
+                type="radio"
+                name="correct-answer"
+                value={3}
+                checked={prefilled.correctAnswer === '3'}
+              />
+            </div>
+          </fieldset>
+        </div>
+        <button>Submit question</button>
+      </form>
+    </div>
+  </main>
+</Layout>
