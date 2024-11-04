@@ -6,6 +6,8 @@ import node from '@astrojs/node'
 import react from '@astrojs/react'
 import clerk from '@clerk/astro'
 
+import vercel from '@astrojs/vercel/serverless';
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), react(), clerk()],
@@ -13,7 +15,7 @@ export default defineConfig({
   redirects: {
     dashboard: 'dashboard/new-question',
   },
-  adapter: node({ mode: 'standalone' }),
+  adapter: vercel(),
   experimental: {
     env: {
       schema: {
