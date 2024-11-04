@@ -3,15 +3,16 @@ import { z } from 'astro:schema'
 import { createClerkSupaClient, supabase } from './client'
 export type Question = {
   id: number
-  created_by: number
+  user_id: number
   question: string
   answers: string[]
   correct_answer: number
+  category: number
   sub_category: string
 }
 export type Category = {
   id: number
-  created_by: number
+  user_id: number
   name: string
   sub_category: string
 }
@@ -45,36 +46,141 @@ export const server = {
       return data as Question[]
     },
   }),
+  deleteQuestion: defineAction({
+    input: z.object({
+      questionId: z.number(),
+    }),
+    handler: async (input, context) => {
+      const sessionToken = await context.locals.auth().getToken({
+        template: 'supabase',
+      })
+      if (!sessionToken) {
+        throw new Error('Not authenticated')
+      }
+      const client = createClerkSupaClient(sessionToken)
+      const { error } = await client
+        .from('questions')
+        .delete()
+        .eq('id', input.questionId)
+      return error
+    },
+  }),
   createNewQuestion: defineAction({
     accept: 'form',
     input: z.object({
-      existingCategory: z.string(),
-      newCategory: z.string(),
+      existingCategory: z.string().nullable(),
+      newCategory: z.string().nullable(),
       question: z.string(),
       answers: z.array(z.string()),
       correctAnswer: z.string(),
-      sessionToken: z.string(),
     }),
-    handler: async (input) => {
-      if (input.newCategory) {
-        await server.createNewCategory({
-          newCategory: input.newCategory,
-          sessionToken: input.sessionToken,
-        })
+    handler: async (input, context) => {
+      const sessionToken = await context.locals.auth().getToken({
+        template: 'supabase',
+      })
+      if (!sessionToken) {
+        throw new Error('Not authenticated')
       }
+      let catId = input.existingCategory
+      if (input.newCategory) {
+        const { data: existingCategories } = await server.getCategories()
+        const alreadyExist = existingCategories?.find(
+          (v) => v.name.toLowerCase() === input.newCategory?.toLowerCase()
+        )
+        if (alreadyExist) {
+          catId = `${alreadyExist.id}`
+        } else {
+          const { data } = await server.createNewCategory({
+            newCategory: input.newCategory,
+          })
+          if (data?.id) {
+            catId = `${data?.id}`
+          }
+        }
+      }
+      if (!catId) {
+        return new Error('Unable to process Category')
+      }
+      const client = createClerkSupaClient(sessionToken)
+      const { data, error } = await client.from('questions').insert({
+        question: input.question,
+        answers: input.answers,
+        correct_answer: input.correctAnswer,
+        category: +catId,
+      })
+    },
+  }),
+  updateQuestion: defineAction({
+    accept: 'form',
+    input: z.object({
+      existingCategory: z.string().nullable(),
+      newCategory: z.string().nullable(),
+      question: z.string(),
+      answers: z.array(z.string()),
+      correctAnswer: z.string(),
+    }),
+    handler: async (input, context) => {
+      const { id } = context.params
+      const sessionToken = await context.locals.auth().getToken({
+        template: 'supabase',
+      })
+      if (!sessionToken) {
+        throw new Error('Not authenticated')
+      }
+      let catId = input.existingCategory
+      if (input.newCategory) {
+        const { data: existingCategories } = await server.getCategories()
+        const alreadyExist = existingCategories?.find(
+          (v) => v.name.toLowerCase() === input.newCategory?.toLowerCase()
+        )
+        if (alreadyExist) {
+          catId = `${alreadyExist.id}`
+        } else {
+          const { data } = await server.createNewCategory({
+            newCategory: input.newCategory,
+          })
+          if (data?.id) {
+            catId = `${data?.id}`
+          }
+        }
+      }
+      if (!catId) {
+        return new Error('Unable to process Category')
+      }
+      const client = createClerkSupaClient(sessionToken)
+      const { data, error } = await client
+        .from('questions')
+        .update({
+          question: input.question.trim(),
+          answers: input.answers,
+          correct_answer: +input.correctAnswer,
+          category: +catId,
+        })
+        .eq('id', id)
+      console.log('inside action', { data }, { error })
     },
   }),
   createNewCategory: defineAction({
     input: z.object({
       newCategory: z.string(),
-      sessionToken: z.string(),
     }),
-    handler: async (input) => {
+    handler: async (input, context) => {
+      const sessionToken = await context.locals.auth().getToken({
+        template: 'supabase',
+      })
+      if (!sessionToken) {
+        throw new Error('Not authenticated')
+      }
       if (input.newCategory) {
-        const client = createClerkSupaClient(input.sessionToken)
-        const { data } = await client.from('categories').insert({
-          name: input.newCategory,
-        })
+        const client = createClerkSupaClient(sessionToken)
+        const { data } = await client
+          .from('categories')
+          .insert({
+            name: input.newCategory,
+          })
+          .select('id')
+        console.log(data)
+        return data?.[0]
       }
     },
   }),

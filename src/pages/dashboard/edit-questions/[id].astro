@@ -1,0 +1,215 @@
+---
+import { actions } from 'astro:actions'
+import Layout from '../../../layouts/Layout.astro'
+import { supabase } from '../../../actions/client'
+import type { Question } from '../../../actions'
+const { data: categories } = await actions.getCategories()
+
+const errors = {
+  existingCategory: '',
+  newCategory: '',
+  question: '',
+  answers: '',
+  correctAnswer: '',
+}
+const result = Astro.getActionResult(actions.updateQuestion)
+const { id } = Astro.params
+const { data } = await supabase.from('questions').select().eq('id', id)
+const question = data?.[0] as Question
+---
+
+<Layout title="Edit Question - Dashboard">
+  <main>
+    <h2 class="text-3xl">Edit your question</h2>
+    <nav class="mb-6">
+      <ul class="flex gap-6">
+        <li><a href="/dashboard/new-question">New Question</a></li><li>
+          <a href="/dashboard/edit-questions">Edit Questions</a>
+        </li>
+      </ul>
+    </nav>
+    <div>
+      {
+        result
+          ? result.error
+            ? 'something happened'
+            : 'successfully updated question'
+          : ''
+      }
+    </div>
+    <div class="mt-8 border border-solid border-black px-10 py-6">
+      {
+        question ? (
+          <div>
+            <h3 class="text-2xl">
+              Please fill out the form below to edit your question:
+            </h3>
+            <form
+              method="POST"
+              action={actions.updateQuestion}
+              class="flex flex-col gap-4 px-2 py-4"
+            >
+              <div class="flex flex-col gap-2">
+                <label for="existing-category">Add to existing category</label>
+                <select
+                  transition:persist
+                  name="existingCategory"
+                  id="existing-category"
+                >
+                  <option value="">--Leave blank if new category--</option>
+                  {categories?.map((cat) => (
+                    <option
+                      selected={question.category === cat.id}
+                      value={cat.id}
+                    >
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.existingCategory && (
+                  <p class="text-red-700">Error: {errors.existingCategory}</p>
+                )}
+              </div>
+              <hr class="border-black" />
+              <div class="flex flex-col gap-2">
+                <label for="new-category">Add to new category</label>
+                <input
+                  transition:persist
+                  class="mx-0"
+                  name="newCategory"
+                  id="new-category"
+                  placeholder="Awesome Cert"
+                  type="text"
+                />
+                {errors.newCategory && (
+                  <p class="text-red-700">Error: {errors.newCategory}</p>
+                )}
+              </div>
+              <hr class="border-black" />
+              <div class="flex flex-col gap-2">
+                <label for="question">Add your new question</label>
+                <textarea
+                  class="text-left"
+                  transition:persist
+                  required
+                  name="question"
+                  id="question"
+                >
+                  {question.question}
+                </textarea>
+              </div>
+              <hr class="border-black" />
+              <div>
+                <label for="answers">Add the answers to your question</label>
+                <fieldset>
+                  <legend>
+                    Add upp to 4 answers, a single answer will become a
+                    flashcard
+                  </legend>
+                  <div>
+                    <>
+                      <label for="answer-a">a</label>
+                      <input
+                        required
+                        transition:persist
+                        id="answer-a"
+                        name="answers"
+                        type="text"
+                        placeholder="Answer A"
+                        value={question.answers[0]}
+                      />
+                    </>
+                  </div>
+                  <div>
+                    <>
+                      <label for="answer-b">b</label>
+                      <input
+                        transition:persist
+                        id="answer-b"
+                        name="answers"
+                        type="text"
+                        placeholder="Answer B"
+                        value={question.answers[1]}
+                      />
+                    </>
+                  </div>
+                  <div>
+                    <>
+                      <label for="answer-c">c</label>
+                      <input
+                        transition:persist
+                        id="answer-c"
+                        name="answers"
+                        type="text"
+                        placeholder="Answer C"
+                        value={question.answers[2]}
+                      />
+                    </>
+                  </div>
+                  <div>
+                    <>
+                      <label for="answer-d">d</label>
+                      <input
+                        transition:persist
+                        id="answer-d"
+                        name="answers"
+                        type="text"
+                        placeholder="Answer d"
+                        value={question.answers[3]}
+                      />
+                    </>
+                  </div>
+                </fieldset>
+                <hr class="border-black my-4" />
+                <fieldset>
+                  <legend>Select correct answer</legend>
+                  <div>
+                    <label for="correct-a">a</label>
+                    <input
+                      transition:persist
+                      id="correct-a"
+                      type="radio"
+                      name="correctAnswer"
+                      value={0}
+                      checked={question['correct_answer'] === 0}
+                    />
+                    <label for="correct-b">b</label>
+                    <input
+                      id="correct-b"
+                      transition:persist
+                      type="radio"
+                      name="correctAnswer"
+                      value={1}
+                      checked={question['correct_answer'] === 1}
+                    />
+                    <label for="correct-c">c</label>
+                    <input
+                      transition:persist
+                      id="correct-c"
+                      type="radio"
+                      name="correctAnswer"
+                      value={2}
+                      checked={question['correct_answer'] === 2}
+                    />
+                    <label for="correct-d">d</label>
+                    <input
+                      id="correct-d"
+                      transition:persist
+                      type="radio"
+                      name="correctAnswer"
+                      value={3}
+                      checked={question['correct_answer'] === 3}
+                    />
+                  </div>
+                </fieldset>
+              </div>
+              <button>Submit question</button>
+            </form>
+          </div>
+        ) : (
+          <p>hmmm, that question does not exist...</p>
+        )
+      }
+    </div>
+  </main>
+</Layout>
