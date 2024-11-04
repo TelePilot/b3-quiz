@@ -102,7 +102,7 @@ export const server = {
         return new Error('Unable to process Category')
       }
       const client = createClerkSupaClient(sessionToken)
-      const { data, error } = await client.from('questions').insert({
+      await client.from('questions').insert({
         question: input.question,
         answers: input.answers,
         correct_answer: input.correctAnswer,
@@ -148,7 +148,7 @@ export const server = {
         return new Error('Unable to process Category')
       }
       const client = createClerkSupaClient(sessionToken)
-      const { data, error } = await client
+      await client
         .from('questions')
         .update({
           question: input.question.trim(),
@@ -157,7 +157,6 @@ export const server = {
           category: +catId,
         })
         .eq('id', id)
-      console.log('inside action', { data }, { error })
     },
   }),
   createNewCategory: defineAction({
@@ -179,7 +178,6 @@ export const server = {
             name: input.newCategory,
           })
           .select('id')
-        console.log(data)
         return data?.[0]
       }
     },
