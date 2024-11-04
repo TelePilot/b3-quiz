@@ -9,7 +9,7 @@ import clerk from '@clerk/astro'
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), react(), clerk()],
-  output: 'server',
+  output: 'hybrid',
   redirects: {
     dashboard: 'dashboard/new-question',
   },
