@@ -5,6 +5,7 @@ import {
   UserButton,
   SignInButton,
 } from '@clerk/astro/components'
+import { ViewTransitions } from 'astro:transitions'
 interface Props {
   title: string
 }
@@ -21,6 +22,7 @@ const { title } = Astro.props
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <ViewTransitions transition:animate="none" />
   </head>
   <body>
     <header class="min-h-24 flex gap-4 px-8 justify-between items-center">
@@ -28,7 +30,7 @@ const { title } = Astro.props
       <nav class="flex gap-8 items-center">
         <ul class="flex gap-6">
           <li><a href="/">Quiz</a></li>
-          <li><a href="/dashboard">Dashboard</a></li>
+          <li><a href="/dashboard/new-question">Dashboard</a></li>
         </ul>
         <div
           class="w-48 h-16 flex justify-between items-center gap-4 px-4 border border-solid border-black"

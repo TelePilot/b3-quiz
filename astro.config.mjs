@@ -10,6 +10,9 @@ import clerk from '@clerk/astro'
 export default defineConfig({
   integrations: [tailwind(), react(), clerk()],
   output: 'server',
+  redirects: {
+    dashboard: 'dashboard/new-question',
+  },
   adapter: node({ mode: 'standalone' }),
   experimental: {
     env: {

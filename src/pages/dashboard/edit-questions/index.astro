@@ -1,0 +1,19 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import QuestionsTable from '../../../components/QuestionsTable'
+const user = await Astro.locals.currentUser()
+---
+
+<Layout title="Edit Questions - Dashboard">
+  <main>
+    <h2 class="text-3xl">Welcome to the dashboard</h2>
+    <nav class="mb-6">
+      <ul class="flex gap-6">
+        <li><a href="/dashboard/new-question">New Question</a></li><li>
+          <a href="/dashboard/edit-questions">Edit Questions</a>
+        </li>
+      </ul>
+    </nav>
+    <QuestionsTable userName={user?.username} client:load />
+  </main>
+</Layout>
