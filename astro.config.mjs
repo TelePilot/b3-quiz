@@ -2,16 +2,15 @@
 import { defineConfig, envField } from 'astro/config'
 
 import tailwind from '@astrojs/tailwind'
-import node from '@astrojs/node'
 import react from '@astrojs/react'
 import clerk from '@clerk/astro'
 
-import vercel from '@astrojs/vercel/serverless';
+import vercel from '@astrojs/vercel/serverless'
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [tailwind(), react(), clerk()],
-  output: 'server',
+  output: 'hybrid',
   redirects: {
     dashboard: 'dashboard/new-question',
   },
