@@ -14,7 +14,7 @@ const { title } = Astro.props
 ---
 
 <!doctype html>
-<html lang="en">
+<html transition:animate="none" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="description" content="Astro description" />
@@ -22,7 +22,7 @@ const { title } = Astro.props
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
-    <ViewTransitions transition:animate="none" />
+    <ViewTransitions />
   </head>
   <body>
     <header class="min-h-24 flex gap-4 px-8 justify-between items-center">

@@ -2,6 +2,7 @@
 import Layout from '../../../layouts/Layout.astro'
 import QuestionsTable from '../../../components/QuestionsTable'
 const user = await Astro.locals.currentUser()
+const userName = user?.username
 ---
 
 <Layout title="Edit Questions - Dashboard">
@@ -14,6 +15,10 @@ const user = await Astro.locals.currentUser()
         </li>
       </ul>
     </nav>
-    <QuestionsTable userName={user?.username} client:load />
+    <h2 class="text-2xl">
+      These are the questions you{userName && ` (${userName})`} have created
+    </h2>
+    <p>Select one to edit</p>
+    <QuestionsTable client:load />
   </main>
 </Layout>

@@ -51,10 +51,6 @@ const QuestionsTable = ({ userName }: { userName?: string | null }) => {
   }
   return (
     <div>
-      <h2 className="text-2xl">
-        These are the questions you{userName && ` (${userName})`} have created
-      </h2>
-      <p>Select one to edit</p>
       <table>
         <tbody>
           <tr>
