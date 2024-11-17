@@ -4,7 +4,7 @@ import type { Category, Question } from '../actions'
 
 export type Answer = { answer: string; correct: boolean }
 
-const shuffleAnswers = (answers: Answer[]) => {
+const shuffle = (answers: Answer[] | Question[]) => {
   for (let i = answers.length - 1; i >= 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[answers[i], answers[j]] = [answers[j], answers[i]]
@@ -28,7 +28,7 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
       answer,
       correct: idx === currentQuestion.correct_answer,
     }))
-    shuffleAnswers(tempAns)
+    shuffle(tempAns)
     let correctAnswer = ''
     const ans = tempAns.reduce(
       (prev, curr, idx) => {
@@ -57,8 +57,10 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
           const formData = new FormData(e.target as HTMLFormElement)
           const { data, error } = await actions.getQuestionsByCategory(formData)
           if (!error) {
-            setQuestions(data)
-            setCurrentQuestion(data[0])
+            const randomisedQuestions = [...data]
+            shuffle(randomisedQuestions)
+            setQuestions(randomisedQuestions)
+            setCurrentQuestion(randomisedQuestions[0])
             setCurrentIndex(0)
             setSelectedAnswer(undefined)
           }
@@ -111,6 +113,7 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
                 {selectedAnswer ? (
                   <p>
                     {questionType === 'mq' &&
+                      !autoFlashCard &&
                       (answers[selectedAnswer].correct
                         ? 'Nice one! '
                         : 'Maybe next time! ')}
