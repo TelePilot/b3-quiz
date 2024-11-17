@@ -21,6 +21,7 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
   const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>(
     undefined
   )
+  const [questionType, setQuestionType] = useState<'mq' | 'fc'>('mq')
   const { answers, correctAnswer } = useMemo(() => {
     if (!currentQuestion?.answers) return { answers: {}, correctAnswer: '' }
     const tempAns = currentQuestion?.answers?.map((answer, idx) => ({
@@ -29,25 +30,28 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
     }))
     shuffleAnswers(tempAns)
     let correctAnswer = ''
-    const ans = tempAns.reduce((prev, curr, idx) => {
-      const id = ids[idx]
-      if (curr.correct) {
-        correctAnswer = id
-      }
-      prev[id] = curr
-      return prev
-    }, {} as Record<string, Answer>)
+    const ans = tempAns.reduce(
+      (prev, curr, idx) => {
+        const id = ids[idx]
+        if (curr.correct) {
+          correctAnswer = id
+        }
+        prev[id] = curr
+        return prev
+      },
+      {} as Record<string, Answer>
+    )
     return {
       answers: ans,
       correctAnswer,
     }
   }, [currentQuestion])
-
+  const autoFlashCard = Object.keys(answers).length === 1
   return (
     <div className="mt-6 h-full">
       <form
         id="category-form"
-        className="flex gap-2 flex-wrap items-center"
+        className="flex gap-2 flex-wrap items-center justify-center"
         onSubmit={async (e) => {
           e.preventDefault()
           const formData = new FormData(e.target as HTMLFormElement)
@@ -76,6 +80,16 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
 
       {!!currentQuestion && (
         <article className="border border-solid border-black rounded-sm h-4/6 shadow-md p-6 mt-6">
+          <div className="mb-6 flex justify-start gap-2">
+            <label htmlFor="question-type">choose answer type</label>
+            <select
+              id="question-type"
+              onChange={(e) => setQuestionType(e.target.value as 'mq' | 'fc')}
+            >
+              <option value="mq">multi-answer</option>
+              <option value="fc">flashcard</option>
+            </select>
+          </div>
           <div>
             <form
               onSubmit={(e) => {
@@ -90,38 +104,58 @@ const QuizSelect = ({ categories }: { categories: Category[] }) => {
               }}
             >
               <fieldset className="text-start">
-                <legend>{currentQuestion.question}</legend>
-                {Object.entries(answers).map(([aKey, val], idx) => {
-                  return (
-                    <Fragment key={currentQuestion.id + '-question-' + aKey}>
-                      <input
-                        autoFocus={!idx}
-                        name="answer"
-                        type="radio"
-                        id={currentQuestion.id + '-question-' + aKey}
-                        value={aKey}
-                      />
-                      <label htmlFor={currentQuestion.id + '-question-' + aKey}>
-                        {val.answer}
-                      </label>
-                      <br />
-                    </Fragment>
-                  )
-                })}
+                <legend>
+                  {currentQuestion.question}
+                  {(questionType === 'fc' || autoFlashCard) && ' - flashcard'}
+                </legend>
+                {selectedAnswer ? (
+                  <p>
+                    {questionType === 'mq' &&
+                      (answers[selectedAnswer].correct
+                        ? 'Nice one! '
+                        : 'Maybe next time! ')}
+                    Correct answer was "{answers[correctAnswer].answer}"
+                  </p>
+                ) : questionType === 'fc' || autoFlashCard ? (
+                  <button onClick={() => setSelectedAnswer(correctAnswer)}>
+                    See answer
+                  </button>
+                ) : (
+                  Object.entries(answers).map(([aKey, val], idx) => {
+                    return (
+                      <Fragment key={currentQuestion.id + '-question-' + aKey}>
+                        <input
+                          autoFocus={!idx}
+                          name="answer"
+                          type="radio"
+                          defaultChecked={!idx}
+                          id={currentQuestion.id + '-question-' + aKey}
+                          value={aKey}
+                        />
+                        <label
+                          htmlFor={currentQuestion.id + '-question-' + aKey}
+                        >
+                          {val.answer}
+                        </label>
+                        <br />
+                      </Fragment>
+                    )
+                  })
+                )}
               </fieldset>
-              <button>Submit answer</button>
+              {questionType === 'mq' && (
+                <button
+                  // TODO: maybe not use disabled state
+                  className="disabled:bg-slate-500 disabled:cursor-not-allowe"
+                  disabled={!!selectedAnswer}
+                >
+                  Submit answer
+                </button>
+              )}
             </form>
           </div>
 
           <div>
-            {selectedAnswer && (
-              <p>
-                {answers[selectedAnswer].correct
-                  ? 'Nice one!'
-                  : 'Maybe next time,'}{' '}
-                correct answer was "{answers[correctAnswer].answer}"
-              </p>
-            )}
             {questions.length > 1 ? (
               <button
                 ref={nextQuestionRef}
