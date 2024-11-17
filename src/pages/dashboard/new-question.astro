@@ -1,9 +1,9 @@
 ---
-import { actions } from 'astro:actions';
-import Layout from '../../layouts/Layout.astro';
-const { data: categories } = await actions.getCategories();
+import { actions } from 'astro:actions'
+import Layout from '../../layouts/Layout.astro'
+const { data: categories } = await actions.getCategories()
 
-const result = Astro.getActionResult(actions.createNewQuestion);
+const result = Astro.getActionResult(actions.createNewQuestion)
 ---
 
 <Layout title="New Question - Dashboard">
