@@ -3,20 +3,6 @@ import { actions } from 'astro:actions'
 import Layout from '../../layouts/Layout.astro'
 const { data: categories } = await actions.getCategories()
 
-const errors = {
-  existingCategory: '',
-  newCategory: '',
-  question: '',
-  answers: '',
-  correctAnswer: '',
-}
-const prefilled = {
-  existingCategory: '',
-  newCategory: '',
-  question: '',
-  answers: [] as string[],
-  correctAnswer: '',
-}
 const result = Astro.getActionResult(actions.createNewQuestion)
 ---
 
@@ -54,57 +40,46 @@ const result = Astro.getActionResult(actions.createNewQuestion)
             transition:persist
             name="existingCategory"
             id="existing-category"
+            aria-describedby="existing-category-help-text"
           >
-            <option value="">--Leave blank if new category--</option>
+            <option value="">--select a category--</option>
             {
               categories?.map((cat) => (
-                <option
-                  selected={prefilled.existingCategory === cat.name}
-                  value={cat.id}
-                >
-                  {cat.name}
-                </option>
+                <option value={cat.id}>{cat.name}</option>
               ))
             }
           </select>
-          {
-            errors.existingCategory && (
-              <p class="text-red-700">Error: {errors.existingCategory}</p>
-            )
-          }
+          <span id="existing-category-help-text"
+            >This can be left blank if adding your question to a new category</span
+          >
         </div>
         <hr class="border-black" />
         <div class="flex flex-col gap-2">
           <label for="new-category">Add to new category</label>
           <input
             transition:persist
-            value={prefilled.newCategory}
             class="mx-0"
             name="newCategory"
             id="new-category"
             placeholder="Awesome Cert"
             type="text"
           />
-          {
-            errors.newCategory && (
-              <p class="text-red-700">Error: {errors.newCategory}</p>
-            )
-          }
+
+          <span id="new-category-help-text"
+            >Selecting a new category will take priority over your selection in
+            existing category</span
+          >
         </div>
         <hr class="border-black" />
         <div class="flex flex-col gap-2">
           <label for="question">Add your new question</label>
           <textarea transition:persist required name="question" id="question"
-            >{prefilled.question}</textarea
-          >
+          ></textarea>
         </div>
         <hr class="border-black" />
         <div>
-          <label for="answers">Add the answers to your question</label>
-          <fieldset>
-            <legend
-              >Add upp to 4 answers, a single answer will become a flashcard</legend
-            >
+          <fieldset aria-describedby="answer-help-text">
+            <legend>Add upp to 4 answers</legend>
             <div>
               <label for="answer-a">a</label><input
                 required
@@ -113,7 +88,6 @@ const result = Astro.getActionResult(actions.createNewQuestion)
                 name="answers"
                 type="text"
                 placeholder="Answer A"
-                value={prefilled.answers[0]}
               />
             </div>
             <div>
@@ -123,7 +97,6 @@ const result = Astro.getActionResult(actions.createNewQuestion)
                 name="answers"
                 type="text"
                 placeholder="Answer B"
-                value={prefilled.answers[1]}
               />
             </div>
             <div>
@@ -133,7 +106,6 @@ const result = Astro.getActionResult(actions.createNewQuestion)
                 name="answers"
                 type="text"
                 placeholder="Answer C"
-                value={prefilled.answers[2]}
               />
             </div>
             <div>
@@ -142,50 +114,52 @@ const result = Astro.getActionResult(actions.createNewQuestion)
                 id="answer-d"
                 name="answers"
                 type="text"
-                placeholder="Answer d"
-                value={prefilled.answers[3]}
-              />
-            </div>
-          </fieldset>
-          <hr class="border-black my-4" />
-          <fieldset>
-            <legend>Select correct answer</legend>
-            <div>
-              <label for="correct-a">a</label>
-              <input
-                transition:persist
-                id="correct-a"
-                type="radio"
-                name="correctAnswer"
-                value={0}
-              />
-              <label for="correct-b">b</label>
-              <input
-                id="correct-b"
-                transition:persist
-                type="radio"
-                name="correctAnswer"
-                value={1}
-              />
-              <label for="correct-c">c</label>
-              <input
-                transition:persist
-                id="correct-c"
-                type="radio"
-                name="correctAnswer"
-                value={2}
-              />
-              <label for="correct-d">d</label>
-              <input
-                id="correct-d"
-                transition:persist
-                type="radio"
-                name="correctAnswer"
-                value={3}
+                placeholder="Answer D"
               />
             </div>
           </fieldset>
         </div>
+        <span id="answer-help-text"
+          >A single answer will force this question to be a flashcard in the UI</span
+        >
+        <hr class="border-black my-4" />
+        <fieldset>
+          <legend>Select correct answer</legend>
+          <div>
+            <label for="correct-a">a</label>
+            <input
+              transition:persist
+              id="correct-a"
+              type="radio"
+              name="correctAnswer"
+              value={0}
+            />
+            <label for="correct-b">b</label>
+            <input
+              id="correct-b"
+              transition:persist
+              type="radio"
+              name="correctAnswer"
+              value={1}
+            />
+            <label for="correct-c">c</label>
+            <input
+              transition:persist
+              id="correct-c"
+              type="radio"
+              name="correctAnswer"
+              value={2}
+            />
+            <label for="correct-d">d</label>
+            <input
+              id="correct-d"
+              transition:persist
+              type="radio"
+              name="correctAnswer"
+              value={3}
+            />
+          </div>
+        </fieldset>
         <button>Submit question</button>
       </form>
     </div>

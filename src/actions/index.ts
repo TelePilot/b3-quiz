@@ -104,7 +104,7 @@ export const server = {
       const client = createClerkSupaClient(sessionToken)
       await client.from('questions').insert({
         question: input.question,
-        answers: input.answers,
+        answers: input.answers.filter(Boolean),
         correct_answer: input.correctAnswer,
         category: +catId,
       })
@@ -152,7 +152,7 @@ export const server = {
         .from('questions')
         .update({
           question: input.question.trim(),
-          answers: input.answers,
+          answers: input.answers.filter(Boolean),
           correct_answer: +input.correctAnswer,
           category: +catId,
         })
